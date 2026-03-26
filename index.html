@@ -1,0 +1,876 @@
+<!doctype html>
+<html lang="es" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Team Hauling - Conectamos Vidas</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            outfit: ['Outfit', 'sans-serif'],
+            mono: ['Space Mono', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    html, body { height: 100%; margin: 0; }
+    .app-root { height: 100%; overflow-y: auto; overflow-x: hidden; }
+
+    /* Animated gradient bg */
+    .hero-bg {
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 30%, #16213e 60%, #0f3460 100%);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-bg::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(ellipse at 30% 50%, rgba(232, 93, 4, 0.08) 0%, transparent 50%),
+                  radial-gradient(ellipse at 70% 20%, rgba(232, 93, 4, 0.05) 0%, transparent 40%);
+      animation: heroFloat 20s ease-in-out infinite;
+    }
+    @keyframes heroFloat {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      33% { transform: translate(2%, -3%) rotate(1deg); }
+      66% { transform: translate(-1%, 2%) rotate(-1deg); }
+    }
+
+    /* Road lines animation */
+    .road-lines {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: repeating-linear-gradient(90deg, #e85d04 0px, #e85d04 40px, transparent 40px, transparent 80px);
+      animation: roadMove 2s linear infinite;
+    }
+    @keyframes roadMove {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-80px); }
+    }
+
+    /* Card hover */
+    .service-card {
+      transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    .service-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 3px;
+      background: linear-gradient(90deg, #e85d04, #f4845f);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .service-card:hover::before { transform: scaleX(1); }
+    .service-card:hover { transform: translateY(-8px); box-shadow: 0 20px 60px rgba(232, 93, 4, 0.15); }
+
+    /* Stagger animations */
+    .fade-up {
+      opacity: 0;
+      transform: translateY(40px);
+      animation: fadeUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+    .delay-4 { animation-delay: 0.4s; }
+    .delay-5 { animation-delay: 0.5s; }
+    .delay-6 { animation-delay: 0.6s; }
+
+    /* WhatsApp float */
+    .wa-float {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 1000;
+      animation: waBounce 2s ease-in-out infinite;
+    }
+    @keyframes waBounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+
+    /* WhatsApp popup */
+    .wa-popup {
+      position: fixed;
+      bottom: 90px;
+      right: 24px;
+      z-index: 999;
+      width: 300px;
+      transform: scale(0.8);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+      transform-origin: bottom right;
+    }
+    .wa-popup.active { transform: scale(1); opacity: 1; pointer-events: all; }
+
+    /* Section divider */
+    .section-divider {
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #e85d04, transparent);
+      max-width: 120px;
+      margin: 0 auto 2rem;
+    }
+
+    /* Image placeholder */
+    .img-placeholder {
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #e85d04;
+      position: relative;
+      overflow: hidden;
+    }
+    .img-placeholder::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(232, 93, 4, 0.05), transparent);
+    }
+
+    /* Form styling */
+    .form-input {
+      background: #111827;
+      border: 1px solid #1f2937;
+      color: #f3f4f6;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .form-input:focus {
+      outline: none;
+      border-color: #e85d04;
+      box-shadow: 0 0 0 3px rgba(232, 93, 4, 0.15);
+    }
+
+    /* Scroll smooth */
+    .app-root { scroll-behavior: smooth; }
+
+    /* Nav blur */
+    .nav-blur {
+      backdrop-filter: blur(20px);
+      background: rgba(10, 10, 10, 0.85);
+      transition: all 0.3s;
+    }
+
+    /* Counter animation */
+    .stat-number {
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      z-index: 2000;
+      transform: translateX(120%);
+      transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .toast.show { transform: translateX(0); }
+
+    /* Mobile nav */
+    .mobile-nav {
+      transform: translateX(100%);
+      transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .mobile-nav.open { transform: translateX(0); }
+  </style>
+  <style>body { box-sizing: border-box; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full">
+  <div class="app-root font-outfit text-gray-100" id="appRoot" style="background:#0a0a0a;">
+   <!-- Toast notification -->
+   <div id="toast" class="toast bg-green-600 text-white px-6 py-3 rounded-xl shadow-2xl flex items-center gap-2">
+    <i data-lucide="check-circle" style="width:20px;height:20px;"></i> <span id="toastMsg">Mensaje enviado</span>
+   </div><!-- Navigation -->
+   <nav class="nav-blur fixed top-0 left-0 w-full z-50 border-b border-white/5">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+     <div class="flex items-center justify-between h-16 sm:h-20">
+      <a href="#hero" class="flex items-center gap-2 sm:gap-3"> <img src="https://imgur.com/zAUnDHB.png" alt="Team Hauling" style="width:36px;height:36px;sm:width:40px;sm:height:40px;border-radius:8px;object-fit:contain;background:#fff;" loading="lazy" onerror="console.error('Logo failed:', this.src); this.style.display='none';"><span id="navBrand" class="text-lg sm:text-xl font-bold tracking-tight">Team <span class="text-orange-500">Hauling</span></span> </a>
+      <div class="hidden md:flex items-center gap-8">
+       <a href="#servicios" class="text-sm text-gray-400 hover:text-orange-400 transition-colors">Servicios</a> <a href="#nosotros" class="text-sm text-gray-400 hover:text-orange-400 transition-colors">Nosotros</a> <a href="#galerias" class="text-sm text-gray-400 hover:text-orange-400 transition-colors">Galerías</a> <a href="#cobertura" class="text-sm text-gray-400 hover:text-orange-400 transition-colors">Cobertura</a> <a href="#formulario" class="text-sm bg-orange-600 hover:bg-orange-500 text-white px-5 py-2.5 rounded-lg font-medium transition-colors">Cotizar</a>
+      </div><button id="menuBtn" class="md:hidden p-2 text-gray-400 hover:text-white" aria-label="Abrir menú"> <i data-lucide="menu" style="width:24px;height:24px;"></i> </button>
+     </div>
+    </div>
+   </nav><!-- Mobile Nav -->
+   <div id="mobileNav" class="mobile-nav fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center gap-8">
+    <button id="closeMenu" class="absolute top-5 right-5 p-2 text-gray-400 hover:text-white" aria-label="Cerrar menú"> <i data-lucide="x" style="width:28px;height:28px;"></i> </button> <a href="#servicios" class="text-2xl text-gray-200 hover:text-orange-400 transition-colors mob-link">Servicios</a> <a href="#nosotros" class="text-2xl text-gray-200 hover:text-orange-400 transition-colors mob-link">Nosotros</a> <a href="#galerias" class="text-2xl text-gray-200 hover:text-orange-400 transition-colors mob-link">Galerías</a> <a href="#cobertura" class="text-2xl text-gray-200 hover:text-orange-400 transition-colors mob-link">Cobertura</a> <a href="#formulario" class="text-2xl bg-orange-600 hover:bg-orange-500 text-white px-8 py-3 rounded-xl font-medium transition-colors mob-link">Cotizar</a>
+   </div><!-- Hero -->
+   <header id="hero" class="hero-bg relative" style="min-height:100%;">
+    <div class="relative z-10 flex flex-col items-center justify-center text-center px-4 sm:px-6" style="min-height:100%;padding-top:100px;padding-bottom:60px;">
+     <div class="fade-up">
+      <span class="inline-flex items-center gap-2 bg-orange-600/10 border border-orange-600/20 text-orange-400 text-xs sm:text-sm font-medium px-4 py-1.5 rounded-full mb-6"> <span class="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span> Operando en toda Venezuela </span>
+     </div>
+     <h1 id="heroTitle" class="fade-up delay-1 text-4xl sm:text-5xl md:text-7xl font-900 leading-tight max-w-4xl mb-6">Conectamos <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-orange-600">vidas</span></h1>
+     <p id="heroSubtitle" class="fade-up delay-2 text-base sm:text-lg md:text-xl text-gray-400 max-w-2xl mb-10 leading-relaxed">Transporte de personas, envío de encomiendas y traslado de mascotas con la confianza y seguridad que mereces</p>
+     <div class="fade-up delay-3 flex flex-col sm:flex-row gap-4">
+      <a href="#formulario" id="heroCta" class="bg-orange-600 hover:bg-orange-500 text-white px-8 py-4 rounded-xl font-semibold text-lg transition-all hover:shadow-lg hover:shadow-orange-600/25"> Solicitar Servicio </a> <a href="#servicios" class="border border-white/10 hover:border-orange-500/50 text-white px-8 py-4 rounded-xl font-medium text-lg transition-all hover:bg-white/5"> Ver Servicios </a>
+     </div><!-- Stats -->
+     <div class="fade-up delay-4 mt-16 sm:mt-20 grid grid-cols-3 gap-6 sm:gap-12 max-w-lg">
+      <div>
+       <div class="stat-number text-2xl sm:text-3xl font-800 text-orange-400">
+        5K+
+       </div>
+       <div class="text-xs sm:text-sm text-gray-500 mt-1">
+        Viajes
+       </div>
+      </div>
+      <div>
+       <div class="stat-number text-2xl sm:text-3xl font-800 text-orange-400">
+        24
+       </div>
+       <div class="text-xs sm:text-sm text-gray-500 mt-1">
+        Estados
+       </div>
+      </div>
+      <div>
+       <div class="stat-number text-2xl sm:text-3xl font-800 text-orange-400">
+        98%
+       </div>
+       <div class="text-xs sm:text-sm text-gray-500 mt-1">
+        Satisfacción
+       </div>
+      </div>
+     </div>
+    </div>
+    <div class="road-lines"></div>
+   </header><!-- Services -->
+   <section id="servicios" class="py-20 sm:py-28 px-4 sm:px-6 lg:px-8" style="background:#0d0d0d;">
+    <div class="max-w-7xl mx-auto">
+     <div class="text-center mb-16">
+      <span class="text-orange-500 font-mono text-sm tracking-widest uppercase">Lo que hacemos</span>
+      <h2 class="text-3xl sm:text-4xl md:text-5xl font-800 mt-3 mb-4">Nuestros Servicios</h2>
+      <div class="section-divider"></div>
+      <p class="text-gray-500 max-w-xl mx-auto">Soluciones de transporte adaptadas a cada necesidad, con cobertura nacional y visión latinoamericana</p>
+     </div>
+     <div class="grid md:grid-cols-3 gap-6 lg:gap-8">
+      <!-- Card 1: Viajes -->
+      <div class="service-card bg-gradient-to-b from-gray-900/80 to-gray-900/40 border border-white/5 rounded-2xl p-8">
+       <div class="w-14 h-14 rounded-xl bg-orange-600/10 flex items-center justify-center mb-6">
+        <i data-lucide="car" style="width:28px;height:28px;color:#e85d04;"></i>
+       </div>
+       <h3 class="text-xl font-700 mb-3">Transporte de Personas</h3>
+       <p class="text-gray-500 text-sm leading-relaxed mb-6">Viajes seguros y cómodos en carros y camionetas por toda Venezuela. Servicio puerta a puerta con conductores verificados.</p>
+       <div class="img-placeholder w-full h-40 rounded-xl mb-4" id="imgViajes">
+        <i data-lucide="image" style="width:32px;height:32px;opacity:0.5;position:relative;z-index:1;"></i>
+       </div>
+       <ul class="space-y-2 text-sm text-gray-400">
+        <li class="flex items-center gap-2"><i data-lucide="check" style="width:16px;height:16px;color:#e85d04;"></i>Viajes interurbanos</li>
+        <li class="flex items-center gap-2"><i data-lucide="check" style="width:16px;height:16px;color:#e85d04;"></i>Servicio ejecutivo</li>
+        <li class="flex items-center gap-2"><i data-lucide="check" style="width:16px;height:16px;color:#e85d04;"></i>Grupos y familias</li>
+       </ul>
+      </div><!-- Card 2: Encomiendas -->
+      <div class="service-card bg-gradient-to-b from-gray-900/80 to-gray-900/40 border border-white/5 rounded-2xl p-8">
+       <div class="w-14 h-14 rounded-xl bg-orange-600/10 flex items-center justify-center mb-6">
+        <i data-lucide="package" style="width:28px;height:28px;color:#e85d04;"></i>
+       </div>
+       <h3 class="text-xl font-700 mb-3">Envío de Encomiendas</h3>
+       <p class="text-gray-500 text-sm leading-relaxed mb-6">Envía paquetes y documentos de forma rápida y segura a cualquier estado. Rastreo y confirmación de entrega.</p>
+       <div class="img-placeholder w-full h-40 rounded-xl mb-4" id="imgEncomiendas">
+        <i data-lucide="image" style="width:32px;height:32px;opacity:0.5;position:relative;z-index:1;"></i>
+       </div>
+       <ul class="space-y-2 text-sm text-gray-400">
+        <li class="flex items-center gap-2"><i data-lucide="check" style="width:16px;height:16px;color:#e85d04;"></i>Paquetería nacional</li>
+        <li class="flex items-center gap-2"><i data-lucide="check" style="width:16px;height:16px;color:#e85d04;"></i>Documentos urgentes</li>
+        <li class="flex items-center gap-2"><i data-lucide="check" style="width:16px;height:16px;color:#e85d04;"></i>Entrega confirmada</li>
+       </ul>
+      </div><!-- Card 3: Mascotas -->
+      <div class="service-card bg-gradient-to-b from-gray-900/80 to-gray-900/40 border border-white/5 rounded-2xl p-8">
+       <div class="w-14 h-14 rounded-xl bg-orange-600/10 flex items-center justify-center mb-6">
+        <svg viewbox="0 0 24 24" width="28" height="28" fill="none" stroke="#e85d04" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+         <circle cx="11" cy="4" r="2" /><circle cx="18" cy="8" r="2" /><circle cx="4" cy="8" r="2" /> <circle cx="7" cy="4" r="2" /> <path d="M12 17c-2.5 0-4.5-1.5-5-4 0 0-.5-2 1-3s3.5-1 4-1 2.5 0 4 1 1 3 1 3c-.5 2.5-2.5 4-5 4z" />
+        </svg>
+       </div>
+       <h3 class="text-xl font-700 mb-3">Traslado de Mascotas</h3>
+       <p class="text-gray-500 text-sm leading-relaxed mb-6">Tu mascota viaja cómoda y segura con nosotros. Transporte seguro y confortable para que llegue tranquilo a su destino.</p>
+       <div class="img-placeholder w-full h-40 rounded-xl mb-4" id="imgMascotas">
+        <i data-lucide="image" style="width:32px;height:32px;opacity:0.5;position:relative;z-index:1;"></i>
+       </div>
+       <ul class="space-y-2 text-sm text-gray-400">
+        <li class="flex items-center gap-2"><i data-lucide="check" style="width:16px;height:16px;color:#e85d04;"></i>Perros y gatos</li>
+        <li class="flex items-center gap-2"><i data-lucide="check" style="width:16px;height:16px;color:#e85d04;"></i>Cuidado veterinario</li>
+        <li class="flex items-center gap-2"><i data-lucide="check" style="width:16px;height:16px;color:#e85d04;"></i>Transporte climatizado</li>
+       </ul>
+      </div>
+     </div>
+    </div>
+   </section><!-- About -->
+   <section id="nosotros" class="py-20 sm:py-28 px-4 sm:px-6 lg:px-8 relative" style="background:linear-gradient(180deg, #0a0a0a, #0d0d0d);">
+    <div class="max-w-7xl mx-auto">
+     <div class="grid md:grid-cols-2 gap-12 lg:gap-20 items-center">
+      <div>
+       <span class="text-orange-500 font-mono text-sm tracking-widest uppercase">Quiénes Somos</span>
+       <h2 class="text-3xl sm:text-4xl font-800 mt-3 mb-6">Conectando Venezuela, <span class="text-orange-500">un viaje a la vez</span></h2>
+       <p id="aboutText" class="text-gray-400 leading-relaxed mb-6">Somos una empresa venezolana dedicada al transporte seguro de personas, mascotas y encomiendas. Operamos en los 24 estados con una flota de carros y camionetas en excelente estado, conductores verificados y un compromiso total con tu tranquilidad.</p>
+       <p class="text-gray-500 leading-relaxed mb-8">Nuestra visión es expandirnos a toda Latinoamérica, llevando nuestro estándar de servicio más allá de las fronteras. Cada viaje es una promesa cumplida.</p>
+       <div class="grid grid-cols-2 gap-4">
+        <div class="bg-gray-900/50 border border-white/5 rounded-xl p-4">
+         <i data-lucide="shield-check" style="width:24px;height:24px;color:#e85d04;margin-bottom:8px;"></i>
+         <div class="text-sm font-600">
+          Conductores Verificados
+         </div>
+         <div class="text-xs text-gray-600 mt-1">
+          Background check completo
+         </div>
+        </div>
+        <div class="bg-gray-900/50 border border-white/5 rounded-xl p-4">
+         <i data-lucide="clock" style="width:24px;height:24px;color:#e85d04;margin-bottom:8px;"></i>
+         <div class="text-sm font-600">
+          Disponible 24/7
+         </div>
+         <div class="text-xs text-gray-600 mt-1">
+          Siempre para ti
+         </div>
+        </div>
+        <div class="bg-gray-900/50 border border-white/5 rounded-xl p-4">
+         <i data-lucide="map-pin" style="width:24px;height:24px;color:#e85d04;margin-bottom:8px;"></i>
+         <div class="text-sm font-600">
+          Cobertura Nacional
+         </div>
+         <div class="text-xs text-gray-600 mt-1">
+          24 estados
+         </div>
+        </div>
+        <div class="bg-gray-900/50 border border-white/5 rounded-xl p-4">
+         <i data-lucide="globe" style="width:24px;height:24px;color:#e85d04;margin-bottom:8px;"></i>
+         <div class="text-sm font-600">
+          Visión LATAM
+         </div>
+         <div class="text-xs text-gray-600 mt-1">
+          Expansión en camino
+         </div>
+        </div>
+       </div>
+      </div>
+      <div class="img-placeholder rounded-2xl" style="min-height:400px;" id="imgAbout">
+       <div class="text-center" style="position:relative;z-index:1;">
+        <i data-lucide="image" style="width:48px;height:48px;opacity:0.3;"></i>
+        <p class="text-gray-600 text-sm mt-3">Imagen de la empresa</p>
+       </div>
+      </div>
+     </div>
+    </div>
+   </section><!-- Gallery Sections -->
+   <div id="galerias"></div>
+   <section id="galeria-encomiendas" class="py-20 sm:py-28 px-4 sm:px-6 lg:px-8" style="background:#0d0d0d;">
+    <div class="max-w-7xl mx-auto">
+     <div class="text-center mb-16">
+      <span class="text-orange-500 font-mono text-sm tracking-widest uppercase">Galería</span>
+      <h2 class="text-3xl sm:text-4xl md:text-5xl font-800 mt-3 mb-4">Entrega de Encomiendas</h2>
+      <div class="section-divider"></div>
+      <p class="text-gray-500 max-w-xl mx-auto">Vea cómo entregamos sus paquetes de forma segura</p>
+     </div>
+     <div class="grid md:grid-cols-3 gap-6">
+      <div class="img-placeholder w-full h-64 rounded-2xl gallery-img" id="galEnco1">
+       <i data-lucide="image" style="width:48px;height:48px;opacity:0.3;"></i>
+       <p class="text-gray-600 text-sm mt-3">Foto de encomienda 1</p>
+      </div>
+      <div class="img-placeholder w-full h-64 rounded-2xl gallery-img" id="galEnco2">
+       <i data-lucide="image" style="width:48px;height:48px;opacity:0.3;"></i>
+       <p class="text-gray-600 text-sm mt-3">Foto de encomienda 2</p>
+      </div>
+      <div class="img-placeholder w-full h-64 rounded-2xl gallery-img" id="galEnco3">
+       <i data-lucide="image" style="width:48px;height:48px;opacity:0.3;"></i>
+       <p class="text-gray-600 text-sm mt-3">Foto de encomienda 3</p>
+      </div>
+     </div>
+    </div>
+   </section><!-- Gallery: Mascotas -->
+   <section id="galeria-mascotas" class="py-20 sm:py-28 px-4 sm:px-6 lg:px-8" style="background:#0a0a0a;">
+    <div class="max-w-7xl mx-auto">
+     <div class="text-center mb-16">
+      <span class="text-orange-500 font-mono text-sm tracking-widest uppercase">Galería</span>
+      <h2 class="text-3xl sm:text-4xl md:text-5xl font-800 mt-3 mb-4">Traslado de Mascotas</h2>
+      <div class="section-divider"></div>
+      <p class="text-gray-500 max-w-xl mx-auto">Sus mascotas en buenas manos</p>
+     </div>
+     <div class="grid md:grid-cols-3 gap-6">
+      <div class="img-placeholder w-full h-64 rounded-2xl gallery-img" id="galMas1">
+       <i data-lucide="image" style="width:48px;height:48px;opacity:0.3;"></i>
+       <p class="text-gray-600 text-sm mt-3">Foto de mascota 1</p>
+      </div>
+      <div class="img-placeholder w-full h-64 rounded-2xl gallery-img" id="galMas2">
+       <i data-lucide="image" style="width:48px;height:48px;opacity:0.3;"></i>
+       <p class="text-gray-600 text-sm mt-3">Foto de mascota 2</p>
+      </div>
+      <div class="img-placeholder w-full h-64 rounded-2xl gallery-img" id="galMas3">
+       <i data-lucide="image" style="width:48px;height:48px;opacity:0.3;"></i>
+       <p class="text-gray-600 text-sm mt-3">Foto de mascota 3</p>
+      </div>
+     </div>
+    </div>
+   </section><!-- Gallery: Pasajeros -->
+   <section id="galeria-pasajeros" class="py-20 sm:py-28 px-4 sm:px-6 lg:px-8" style="background:#0d0d0d;">
+    <div class="max-w-7xl mx-auto">
+     <div class="text-center mb-16">
+      <span class="text-orange-500 font-mono text-sm tracking-widest uppercase">Galería</span>
+      <h2 class="text-3xl sm:text-4xl md:text-5xl font-800 mt-3 mb-4">Transporte de Pasajeros</h2>
+      <div class="section-divider"></div>
+      <p class="text-gray-500 max-w-xl mx-auto">Comodidad y seguridad en cada viaje</p>
+     </div>
+     <div class="grid md:grid-cols-3 gap-6">
+      <div class="img-placeholder w-full h-64 rounded-2xl gallery-img" id="galPas1">
+       <i data-lucide="image" style="width:48px;height:48px;opacity:0.3;"></i>
+       <p class="text-gray-600 text-sm mt-3">Foto de pasajeros 1</p>
+      </div>
+      <div class="img-placeholder w-full h-64 rounded-2xl gallery-img" id="galPas2">
+       <i data-lucide="image" style="width:48px;height:48px;opacity:0.3;"></i>
+       <p class="text-gray-600 text-sm mt-3">Foto de pasajeros 2</p>
+      </div>
+      <div class="img-placeholder w-full h-64 rounded-2xl gallery-img" id="galPas3">
+       <i data-lucide="image" style="width:48px;height:48px;opacity:0.3;"></i>
+       <p class="text-gray-600 text-sm mt-3">Foto de pasajeros 3</p>
+      </div>
+     </div>
+    </div>
+   </section><!-- Coverage -->
+   <section id="cobertura" class="py-20 sm:py-28 px-4 sm:px-6 lg:px-8" style="background:#0d0d0d;">
+    <div class="max-w-7xl mx-auto text-center">
+     <span class="text-orange-500 font-mono text-sm tracking-widest uppercase">Cobertura</span>
+     <h2 class="text-3xl sm:text-4xl font-800 mt-3 mb-4">Donde nos necesites, <span class="text-orange-500">ahí estamos</span></h2>
+     <div class="section-divider"></div>
+     <p class="text-gray-500 max-w-xl mx-auto mb-12">Rutas principales y ciudades con mayor demanda</p>
+     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+      <div class="bg-gray-900/50 border border-white/5 rounded-xl px-4 py-3 text-sm hover:border-orange-500/30 transition-colors">
+       📍 Caracas
+      </div>
+      <div class="bg-gray-900/50 border border-white/5 rounded-xl px-4 py-3 text-sm hover:border-orange-500/30 transition-colors">
+       📍 Maracaibo
+      </div>
+      <div class="bg-gray-900/50 border border-white/5 rounded-xl px-4 py-3 text-sm hover:border-orange-500/30 transition-colors">
+       📍 Valencia
+      </div>
+      <div class="bg-gray-900/50 border border-white/5 rounded-xl px-4 py-3 text-sm hover:border-orange-500/30 transition-colors">
+       📍 Barquisimeto
+      </div>
+      <div class="bg-gray-900/50 border border-white/5 rounded-xl px-4 py-3 text-sm hover:border-orange-500/30 transition-colors">
+       📍 Mérida
+      </div>
+      <div class="bg-gray-900/50 border border-white/5 rounded-xl px-4 py-3 text-sm hover:border-orange-500/30 transition-colors">
+       📍 Maracay
+      </div>
+      <div class="bg-gray-900/50 border border-white/5 rounded-xl px-4 py-3 text-sm hover:border-orange-500/30 transition-colors">
+       📍 San Cristóbal
+      </div>
+      <div class="bg-gray-900/50 border border-white/5 rounded-xl px-4 py-3 text-sm hover:border-orange-500/30 transition-colors">
+       📍 Puerto Ordaz
+      </div>
+      <div class="bg-gray-900/50 border border-white/5 rounded-xl px-4 py-3 text-sm hover:border-orange-500/30 transition-colors">
+       📍 Barcelona
+      </div>
+      <div class="bg-gray-900/50 border border-white/5 rounded-xl px-4 py-3 text-sm hover:border-orange-500/30 transition-colors">
+       📍 Barinas
+      </div>
+      <div class="bg-gray-900/50 border border-white/5 rounded-xl px-4 py-3 text-sm hover:border-orange-500/30 transition-colors">
+       📍 Maturín
+      </div>
+      <div class="bg-gray-900/50 border border-white/5 rounded-xl px-4 py-3 text-sm hover:border-orange-500/30 transition-colors">
+       📍 + 13 estados más
+      </div>
+     </div>
+     <div class="mt-12 bg-gradient-to-r from-orange-600/10 via-orange-600/5 to-orange-600/10 border border-orange-600/20 rounded-2xl p-8 max-w-2xl mx-auto">
+      <i data-lucide="globe" style="width:32px;height:32px;color:#e85d04;margin:0 auto 12px;display:block;"></i>
+      <h3 class="text-lg font-700 mb-2">Próximamente en Latinoamérica</h3>
+      <p class="text-gray-500 text-sm">Estamos trabajando para llevar nuestro servicio a Colombia, Ecuador, Perú y más países de la región.</p>
+     </div>
+    </div>
+   </section><!-- Form Section -->
+   <section id="formulario" class="py-20 sm:py-28 px-4 sm:px-6 lg:px-8 relative" style="background:linear-gradient(180deg, #0a0a0a, #0d0d0d);">
+    <div class="max-w-3xl mx-auto">
+     <div class="text-center mb-12">
+      <span class="text-orange-500 font-mono text-sm tracking-widest uppercase">Contáctanos</span>
+      <h2 class="text-3xl sm:text-4xl font-800 mt-3 mb-4">Solicita tu servicio</h2>
+      <div class="section-divider"></div>
+      <p class="text-gray-500">Llena el formulario y te contactamos por WhatsApp al instante</p>
+     </div>
+     <div class="bg-gray-900/60 border border-white/5 rounded-2xl p-6 sm:p-10">
+      <form id="serviceForm" onsubmit="return false;">
+       <!-- Service Type -->
+       <fieldset>
+        <legend class="text-sm font-600 mb-3 text-gray-300">¿Qué servicio necesitas?</legend>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+         <label class="svc-option cursor-pointer"> <input type="radio" name="service" value="viaje" class="hidden peer" checked>
+          <div class="peer-checked:border-orange-500 peer-checked:bg-orange-600/10 border border-white/10 rounded-xl p-4 text-center transition-all hover:border-white/20">
+           <i data-lucide="car" style="width:24px;height:24px;color:#e85d04;margin:0 auto 8px;display:block;"></i> <span class="text-sm font-500">Viaje</span>
+          </div></label> <label class="svc-option cursor-pointer"> <input type="radio" name="service" value="encomienda" class="hidden peer">
+          <div class="peer-checked:border-orange-500 peer-checked:bg-orange-600/10 border border-white/10 rounded-xl p-4 text-center transition-all hover:border-white/20">
+           <i data-lucide="package" style="width:24px;height:24px;color:#e85d04;margin:0 auto 8px;display:block;"></i> <span class="text-sm font-500">Encomienda</span>
+          </div></label> <label class="svc-option cursor-pointer"> <input type="radio" name="service" value="mascota" class="hidden peer">
+          <div class="peer-checked:border-orange-500 peer-checked:bg-orange-600/10 border border-white/10 rounded-xl p-4 text-center transition-all hover:border-white/20">
+           <svg viewbox="0 0 24 24" width="24" height="24" fill="none" stroke="#e85d04" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 8px;display:block;">
+            <circle cx="11" cy="4" r="2" /><circle cx="18" cy="8" r="2" /><circle cx="4" cy="8" r="2" /><circle cx="7" cy="4" r="2" /> <path d="M12 17c-2.5 0-4.5-1.5-5-4 0 0-.5-2 1-3s3.5-1 4-1 2.5 0 4 1 1 3 1 3c-.5 2.5-2.5 4-5 4z" />
+           </svg><span class="text-sm font-500">Mascota</span>
+          </div></label>
+        </div>
+       </fieldset>
+       <div class="grid sm:grid-cols-2 gap-4 mb-4">
+        <div>
+         <label for="fname" class="block text-sm font-500 text-gray-400 mb-1.5">Nombre completo</label> <input type="text" id="fname" class="form-input w-full rounded-lg px-4 py-3 text-sm" placeholder="Tu nombre" required>
+        </div>
+        <div>
+         <label for="fphone" class="block text-sm font-500 text-gray-400 mb-1.5">Teléfono / WhatsApp</label> <input type="tel" id="fphone" class="form-input w-full rounded-lg px-4 py-3 text-sm" placeholder="+58 412..." required>
+        </div>
+       </div>
+       <div class="grid sm:grid-cols-2 gap-4 mb-4">
+        <div>
+         <label for="forigin" class="block text-sm font-500 text-gray-400 mb-1.5">Ciudad de origen</label> <input type="text" id="forigin" class="form-input w-full rounded-lg px-4 py-3 text-sm" placeholder="¿Desde dónde?" required>
+        </div>
+        <div>
+         <label for="fdest" class="block text-sm font-500 text-gray-400 mb-1.5">Ciudad de destino</label> <input type="text" id="fdest" class="form-input w-full rounded-lg px-4 py-3 text-sm" placeholder="¿Hacia dónde?" required>
+        </div>
+       </div>
+       <div class="mb-4" id="dateField">
+        <label for="fdate" class="block text-sm font-500 text-gray-400 mb-1.5">Fecha estimada</label> <input type="date" id="fdate" class="form-input w-full rounded-lg px-4 py-3 text-sm">
+       </div><!-- Dynamic fields based on service -->
+       <div id="dynamicFields"></div>
+       <div class="mb-6">
+        <label for="fnotes" class="block text-sm font-500 text-gray-400 mb-1.5">Detalles adicionales</label> <textarea id="fnotes" rows="3" class="form-input w-full rounded-lg px-4 py-3 text-sm resize-none" placeholder="Cuéntanos más sobre lo que necesitas..."></textarea>
+       </div><!-- WhatsApp number selection -->
+       <div class="mb-6">
+        <label class="block text-sm font-500 text-gray-400 mb-1.5">Enviar solicitud a:</label>
+        <div class="flex flex-col sm:flex-row gap-3">
+         <label class="flex-1 cursor-pointer"> <input type="radio" name="wanumber" value="584147825840" class="hidden peer" checked>
+          <div class="peer-checked:border-orange-500 peer-checked:bg-orange-600/10 border border-white/10 rounded-lg px-4 py-3 text-center transition-all text-sm">
+           📱 +58 414-7825840
+          </div></label> <label class="flex-1 cursor-pointer"> <input type="radio" name="wanumber" value="584129400921" class="hidden peer">
+          <div class="peer-checked:border-orange-500 peer-checked:bg-orange-600/10 border border-white/10 rounded-lg px-4 py-3 text-center transition-all text-sm">
+           📱 +58 412-9400921
+          </div></label>
+        </div>
+       </div><button type="submit" id="submitBtn" class="w-full bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-white font-semibold py-4 rounded-xl text-lg transition-all flex items-center justify-center gap-3 hover:shadow-lg hover:shadow-orange-600/25">
+        <svg viewbox="0 0 24 24" width="22" height="22" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" /><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492a.5.5 0 00.611.611l4.458-1.495A11.948 11.948 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a9.94 9.94 0 01-5.39-1.587l-.386-.232-2.646.887.887-2.646-.232-.386A9.94 9.94 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z" />
+        </svg> Enviar por WhatsApp </button>
+      </form>
+     </div>
+    </div>
+   </section><!-- Footer -->
+   <footer class="py-12 px-4 sm:px-6 lg:px-8 border-t border-white/5" style="background:#080808;">
+    <div class="max-w-7xl mx-auto">
+     <div class="grid sm:grid-cols-3 gap-8 mb-10">
+      <div>
+       <div class="flex items-center gap-2 mb-4">
+        <img src="https://imgur.com/zAUnDHB.png" alt="Team Hauling" style="width:32px;height:32px;border-radius:6px;object-fit:contain;background:#fff;" loading="lazy" onerror="console.error('Logo failed:', this.src); this.style.display='none';"><span class="font-bold">Team Hauling</span>
+       </div>
+       <p class="text-gray-600 text-sm leading-relaxed">Transporte seguro que conecta vidas en toda Venezuela.</p>
+      </div>
+      <div>
+       <h4 class="font-600 text-sm mb-3 text-gray-300">Contacto</h4>
+       <div class="space-y-2 text-sm text-gray-500">
+        <a href="https://wa.me/584147825840" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 hover:text-orange-400 transition-colors">📱 +58 414-7825840</a> <a href="https://wa.me/584129400921" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 hover:text-orange-400 transition-colors">📱 +58 412-9400921</a>
+       </div>
+      </div>
+      <div>
+       <h4 class="font-600 text-sm mb-3 text-gray-300">Enlaces</h4>
+       <div class="space-y-2 text-sm text-gray-500">
+        <a href="#servicios" class="block hover:text-orange-400 transition-colors">Servicios</a> <a href="#nosotros" class="block hover:text-orange-400 transition-colors">Nosotros</a> <a href="#formulario" class="block hover:text-orange-400 transition-colors">Cotizar</a>
+       </div>
+      </div>
+     </div>
+     <div class="border-t border-white/5 pt-6 text-center text-xs text-gray-700">
+      © 2025 Team Hauling. Todos los derechos reservados.
+     </div>
+    </div>
+   </footer><!-- WhatsApp Float Button -->
+   <div class="wa-float">
+    <button id="waBtn" class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-green-500 hover:bg-green-400 shadow-lg shadow-green-500/30 flex items-center justify-center transition-colors" aria-label="WhatsApp">
+     <svg viewbox="0 0 24 24" width="28" height="28" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" /><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492a.5.5 0 00.611.611l4.458-1.495A11.948 11.948 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a9.94 9.94 0 01-5.39-1.587l-.386-.232-2.646.887.887-2.646-.232-.386A9.94 9.94 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z" />
+     </svg></button>
+   </div><!-- WhatsApp Popup -->
+   <div id="waPopup" class="wa-popup">
+    <div class="bg-gray-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
+     <div class="bg-green-600 px-5 py-3 flex items-center justify-between">
+      <span class="font-600 text-sm text-white">💬 ¿En qué podemos ayudarte?</span> <button id="waClose" class="text-white/70 hover:text-white" aria-label="Cerrar"> <i data-lucide="x" style="width:18px;height:18px;"></i> </button>
+     </div>
+     <div class="p-4 space-y-2">
+      <a href="#" id="waViaje" class="wa-opt flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-colors border border-white/5"> <i data-lucide="car" style="width:20px;height:20px;color:#e85d04;"></i> <span class="text-sm">Info de Viajes</span> </a> <a href="#" id="waMascota" class="wa-opt flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-colors border border-white/5"> <span style="font-size:20px;">🐾</span> <span class="text-sm">Traslado de Mascotas</span> </a> <a href="#" id="waEnco" class="wa-opt flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-colors border border-white/5"> <i data-lucide="package" style="width:20px;height:20px;color:#e85d04;"></i> <span class="text-sm">Envío de Encomiendas</span> </a> <a href="#formulario" id="waForm" class="flex items-center gap-3 p-3 rounded-xl bg-orange-600/10 border border-orange-500/20 hover:bg-orange-600/20 transition-colors"> <i data-lucide="file-text" style="width:20px;height:20px;color:#e85d04;"></i> <span class="text-sm text-orange-400 font-500">Llenar Formulario</span> </a>
+     </div>
+    </div>
+   </div>
+  </div>
+  <script>
+  // === Element SDK ===
+  const defaultConfig = {
+    company_name: 'Team Hauling',
+    hero_title: 'Conectamos vidas',
+    hero_subtitle: 'Transporte de personas, envío de encomiendas y traslado de mascotas con la confianza y seguridad que mereces',
+    about_text: 'Somos una empresa venezolana dedicada al transporte seguro de personas, mascotas y encomiendas. Operamos en los 24 estados con una flota de carros y camionetas en excelente estado, conductores verificados y un compromiso total con tu tranquilidad.',
+    cta_button: 'Solicitar Servicio',
+    background_color: '#0a0a0a',
+    surface_color: '#111827',
+    text_color: '#f3f4f6',
+    primary_action_color: '#e85d04',
+    secondary_action_color: '#9ca3af',
+    font_family: 'Outfit',
+    font_size: 16
+  };
+
+  function applyConfig(cfg) {
+    const c = { ...defaultConfig, ...cfg };
+    const root = document.getElementById('appRoot');
+    const bg = c.background_color;
+    const surface = c.surface_color;
+    const txt = c.text_color;
+    const primary = c.primary_action_color;
+    const secondary = c.secondary_action_color;
+    const font = c.font_family;
+    const fs = c.font_size;
+
+    root.style.fontFamily = `${font}, Outfit, sans-serif`;
+    root.style.background = bg;
+    root.style.color = txt;
+    root.style.fontSize = fs + 'px';
+
+    // Hero title
+    const ht = document.getElementById('heroTitle');
+    if (ht) {
+      ht.innerHTML = c.hero_title.replace(/(aquí|aqui)/gi, `<span class="text-transparent bg-clip-text" style="background:linear-gradient(90deg,${primary},${primary}cc);-webkit-background-clip:text;">$1</span>`);
+      ht.style.fontSize = (fs * 3.5) + 'px';
+    }
+    const hs = document.getElementById('heroSubtitle');
+    if (hs) { hs.textContent = c.hero_subtitle; hs.style.color = secondary; }
+
+    const hc = document.getElementById('heroCta');
+    if (hc) { hc.textContent = c.cta_button; hc.style.background = primary; }
+
+    const at = document.getElementById('aboutText');
+    if (at) { at.textContent = c.about_text; at.style.color = secondary; }
+
+    // Nav brand
+    const nb = document.getElementById('navBrand');
+    if (nb) nb.innerHTML = c.company_name.replace(/(Express|express)/gi, `<span style="color:${primary}">$1</span>`);
+
+    // Inputs
+    document.querySelectorAll('.form-input').forEach(el => {
+      el.style.background = surface;
+      el.style.borderColor = surface;
+      el.style.color = txt;
+    });
+
+    // Service cards top bar color via CSS var
+    document.querySelectorAll('.service-card').forEach(card => {
+      card.style.borderColor = `${txt}10`;
+    });
+
+    // Stats
+    document.querySelectorAll('.stat-number').forEach(el => el.style.color = primary);
+
+    // Section dividers
+    document.querySelectorAll('.section-divider').forEach(el => {
+      el.style.background = `linear-gradient(90deg, transparent, ${primary}, transparent)`;
+    });
+
+    // Submit btn
+    const sb = document.getElementById('submitBtn');
+    if (sb) sb.style.background = `linear-gradient(90deg, ${primary}, ${primary}cc)`;
+  }
+
+  if (window.elementSdk) {
+    window.elementSdk.init({
+      defaultConfig,
+      onConfigChange: async (cfg) => applyConfig(cfg),
+      mapToCapabilities: (cfg) => ({
+        recolorables: [
+          { get: () => cfg.background_color || defaultConfig.background_color, set: v => { cfg.background_color = v; window.elementSdk.setConfig({ background_color: v }); } },
+          { get: () => cfg.surface_color || defaultConfig.surface_color, set: v => { cfg.surface_color = v; window.elementSdk.setConfig({ surface_color: v }); } },
+          { get: () => cfg.text_color || defaultConfig.text_color, set: v => { cfg.text_color = v; window.elementSdk.setConfig({ text_color: v }); } },
+          { get: () => cfg.primary_action_color || defaultConfig.primary_action_color, set: v => { cfg.primary_action_color = v; window.elementSdk.setConfig({ primary_action_color: v }); } },
+          { get: () => cfg.secondary_action_color || defaultConfig.secondary_action_color, set: v => { cfg.secondary_action_color = v; window.elementSdk.setConfig({ secondary_action_color: v }); } }
+        ],
+        borderables: [],
+        fontEditable: {
+          get: () => cfg.font_family || defaultConfig.font_family,
+          set: v => { cfg.font_family = v; window.elementSdk.setConfig({ font_family: v }); }
+        },
+        fontSizeable: {
+          get: () => cfg.font_size || defaultConfig.font_size,
+          set: v => { cfg.font_size = v; window.elementSdk.setConfig({ font_size: v }); }
+        }
+      }),
+      mapToEditPanelValues: (cfg) => new Map([
+        ['company_name', cfg.company_name || defaultConfig.company_name],
+        ['hero_title', cfg.hero_title || defaultConfig.hero_title],
+        ['hero_subtitle', cfg.hero_subtitle || defaultConfig.hero_subtitle],
+        ['about_text', cfg.about_text || defaultConfig.about_text],
+        ['cta_button', cfg.cta_button || defaultConfig.cta_button]
+      ])
+    });
+  }
+
+  // === Mobile Nav ===
+  const menuBtn = document.getElementById('menuBtn');
+  const mobileNav = document.getElementById('mobileNav');
+  const closeMenu = document.getElementById('closeMenu');
+  menuBtn.addEventListener('click', () => mobileNav.classList.add('open'));
+  closeMenu.addEventListener('click', () => mobileNav.classList.remove('open'));
+  document.querySelectorAll('.mob-link').forEach(l => l.addEventListener('click', () => mobileNav.classList.remove('open')));
+
+  // === WhatsApp Popup ===
+  const waBtn = document.getElementById('waBtn');
+  const waPopup = document.getElementById('waPopup');
+  const waClose = document.getElementById('waClose');
+  let waOpen = false;
+  waBtn.addEventListener('click', () => { waOpen = !waOpen; waPopup.classList.toggle('active', waOpen); });
+  waClose.addEventListener('click', () => { waOpen = false; waPopup.classList.remove('active'); });
+
+  const waNumber1 = '584147825840';
+  const waMsg = (topic) => encodeURIComponent(`Hola! Quiero información sobre *${topic}*. Vi su página web.`);
+
+  document.getElementById('waViaje').addEventListener('click', (e) => {
+    e.preventDefault();
+    window.open(`https://wa.me/${waNumber1}?text=${waMsg('Viajes y transporte de personas')}`, '_blank');
+  });
+  document.getElementById('waMascota').addEventListener('click', (e) => {
+    e.preventDefault();
+    window.open(`https://wa.me/${waNumber1}?text=${waMsg('Traslado de mascotas')}`, '_blank');
+  });
+  document.getElementById('waEnco').addEventListener('click', (e) => {
+    e.preventDefault();
+    window.open(`https://wa.me/${waNumber1}?text=${waMsg('Envío de encomiendas')}`, '_blank');
+  });
+  document.getElementById('waForm').addEventListener('click', () => { waOpen = false; waPopup.classList.remove('active'); });
+
+  // === Dynamic form fields ===
+  const dynFields = document.getElementById('dynamicFields');
+  function updateDynamicFields() {
+    const svc = document.querySelector('input[name="service"]:checked').value;
+    let html = '';
+    if (svc === 'viaje') {
+      html = `
+        <div class="grid sm:grid-cols-2 gap-4 mb-4">
+          <div><label for="fpax" class="block text-sm font-500 text-gray-400 mb-1.5">Nº de pasajeros</label>
+          <input type="number" id="fpax" min="1" max="15" value="1" class="form-input w-full rounded-lg px-4 py-3 text-sm"></div>
+          <div><label for="fvehicle" class="block text-sm font-500 text-gray-400 mb-1.5">Tipo de vehículo</label>
+          <select id="fvehicle" class="form-input w-full rounded-lg px-4 py-3 text-sm">
+            <option value="carro">Carro (1-4 pax)</option>
+            <option value="camioneta">Camioneta (5-8 pax)</option>
+            <option value="cualquiera">Sin preferencia</option>
+          </select></div>
+        </div>`;
+    } else if (svc === 'encomienda') {
+      html = `
+        <div class="grid sm:grid-cols-2 gap-4 mb-4">
+          <div><label for="fpkg" class="block text-sm font-500 text-gray-400 mb-1.5">Tipo de paquete</label>
+          <select id="fpkg" class="form-input w-full rounded-lg px-4 py-3 text-sm">
+            <option value="sobre">Sobre / Documentos</option>
+            <option value="caja_peq">Caja pequeña</option>
+            <option value="caja_med">Caja mediana</option>
+            <option value="caja_gde">Caja grande</option>
+          </select></div>
+          <div><label for="fweight" class="block text-sm font-500 text-gray-400 mb-1.5">Peso aprox. (kg)</label>
+          <input type="number" id="fweight" min="0.1" step="0.1" class="form-input w-full rounded-lg px-4 py-3 text-sm" placeholder="Ej: 5"></div>
+        </div>`;
+    } else if (svc === 'mascota') {
+      html = `
+        <div class="grid sm:grid-cols-2 gap-4 mb-4">
+          <div><label for="fpet" class="block text-sm font-500 text-gray-400 mb-1.5">Tipo de mascota</label>
+          <select id="fpet" class="form-input w-full rounded-lg px-4 py-3 text-sm">
+            <option value="perro_peq">Perro pequeño</option>
+            <option value="perro_med">Perro mediano</option>
+            <option value="perro_gde">Perro grande</option>
+            <option value="gato">Gato</option>
+            <option value="otro">Otro</option>
+          </select></div>
+          <div><label for="fpetname" class="block text-sm font-500 text-gray-400 mb-1.5">Nombre de la mascota</label>
+          <input type="text" id="fpetname" class="form-input w-full rounded-lg px-4 py-3 text-sm" placeholder="Ej: Max"></div>
+        </div>`;
+    }
+    dynFields.innerHTML = html;
+    // Re-apply input styling
+    dynFields.querySelectorAll('.form-input').forEach(el => {
+      el.style.background = '#111827';
+      el.style.borderColor = '#1f2937';
+      el.style.color = '#f3f4f6';
+    });
+    lucide.createIcons();
+  }
+  document.querySelectorAll('input[name="service"]').forEach(r => r.addEventListener('change', updateDynamicFields));
+  updateDynamicFields();
+
+  // === Form submission to WhatsApp ===
+  document.getElementById('serviceForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const svc = document.querySelector('input[name="service"]:checked').value;
+    const name = document.getElementById('fname').value.trim();
+    const phone = document.getElementById('fphone').value.trim();
+    const origin = document.getElementById('forigin').value.trim();
+    const dest = document.getElementById('fdest').value.trim();
+    const date = document.getElementById('fdate').value;
+    const notes = document.getElementById('fnotes').value.trim();
+    const waNum = document.querySelector('input[name="wanumber"]:checked').value;
+
+    if (!name || !phone || !origin || !dest) {
+      showToast('⚠️ Por favor completa los campos obligatorios', '#ef4444');
+      return;
+    }
+
+    const svcLabels = { viaje: '🚗 Viaje', encomienda: '📦 Encomienda', mascota: '🐾 Traslado de Mascota' };
+    let msg = `*Nueva solicitud - ${svcLabels[svc]}*\n\n`;
+    msg += `👤 *Nombre:* ${name}\n`;
+    msg += `📱 *Teléfono:* ${phone}\n`;
+    msg += `📍 *Origen:* ${origin}\n`;
+    msg += `📍 *Destino:* ${dest}\n`;
+    if (date) msg += `📅 *Fecha:* ${date}\n`;
+
+    if (svc === 'viaje') {
+      const pax = document.getElementById('fpax')?.value || '1';
+      const vehicle = document.getElementById('fvehicle')?.value || '';
+      msg += `👥 *Pasajeros:* ${pax}\n`;
+      msg += `🚙 *Vehículo:* ${vehicle}\n`;
+    } else if (svc === 'encomienda') {
+      const pkg = document.getElementById('fpkg')?.value || '';
+      const weight = document.getElementById('fweight')?.value || '';
+      msg += `📦 *Paquete:* ${pkg}\n`;
+      if (weight) msg += `⚖️ *Peso:* ${weight} kg\n`;
+    } else if (svc === 'mascota') {
+      const pet = document.getElementById('fpet')?.value || '';
+      const petname = document.getElementById('fpetname')?.value || '';
+      msg += `🐾 *Mascota:* ${pet}\n`;
+      if (petname) msg += `💛 *Nombre:* ${petname}\n`;
+    }
+
+    if (notes) msg += `\n📝 *Notas:* ${notes}\n`;
+    msg += `\n_Enviado desde la web Team Hauling_`;
+
+    window.open(`https://wa.me/${waNum}?text=${encodeURIComponent(msg)}`, '_blank');
+    showToast('✅ Redirigiendo a WhatsApp...', '#16a34a');
+  });
+
+  function showToast(message, color) {
+    const toast = document.getElementById('toast');
+    const toastMsg = document.getElementById('toastMsg');
+    toastMsg.textContent = message;
+    toast.style.background = color || '#16a34a';
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3500);
+  }
+
+  // Init Lucide
+  lucide.createIcons();
+
+  // Apply initial config
+  applyConfig(defaultConfig);
+</script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9e2964b303f8a516',t:'MTc3NDU2MjA2MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
