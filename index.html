@@ -27,13 +27,18 @@
 html, body { min-height: 100%; margin: 0; background: #0a0a0a; }
 
    
-    .app-root { height: 100%; overflow-y: auto; overflow-x: hidden; }
+  
 
-    /* Animated gradient bg */
-    .hero-bg {
-      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 30%, #16213e 60%, #0f3460 100%);
-      position: relative;
-      overflow: hidden;
+
+   .app-root { min-height: 100vh; overflow-y: auto; overflow-x: hidden; background: #0a0a0a; }
+
+
+.hero-bg {
+  /* Cambié el final de azul a negro */
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 30%, #16213e 60%, #0a0a0a 100%);
+  position: relative;
+  overflow: hidden;
+}
     }
     .hero-bg::before {
       content: '';
